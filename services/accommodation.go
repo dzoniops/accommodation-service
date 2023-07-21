@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dzoniops/accommodation-service/db"
 	"github.com/dzoniops/accommodation-service/models"
@@ -39,4 +40,41 @@ func (s *Server) CreateAccommodation(
 
 	db.DB.Create(&accommodation)
 	return &pb.AccommodationResponse{AccommodationId: int64(accommodation.ID)}, status.New(codes.OK, "").Err()
+}
+
+func (s *Server) GetAccommodationById(
+	c context.Context,
+	req *pb.AccommodationResponse,
+) (*pb.AccommodationInfo, error) {
+
+	var id int64 = req.AccommodationId
+	var accommo models.Accommodation
+	if result := db.DB.Preload("Images").Where(models.Accommodation{ID: id}).First(&accommo); result.Error != nil {
+		fmt.Println(result.Error)
+	}
+	var accommodation = pb.AccommodationInfo{
+		Id:               accommo.ID,
+		HostId:           accommo.HostID,
+		Name:             accommo.Name,
+		Town:             accommo.Town,
+		Municipality:     accommo.Municipality,
+		Country:          accommo.Country,
+		Amenities:        accommo.Amenities,
+		MinGuests:        int64(accommo.MinGuests),
+		MaxGuests:        int64(accommo.MaxGuests),
+		PricingModel:     string(accommo.PricingModel),
+		ReservationModel: string(accommo.ReservationModel),
+		Images:           []*pb.AccommodationImageResponse{},
+	}
+
+	for _, v := range accommo.Images {
+		var image = pb.AccommodationImageResponse{
+			B64Img:          v.B64IMG,
+			ImageId:         v.ID,
+			AccommodationId: v.AccommodationID,
+		}
+		accommodation.Images = append(accommodation.Images, &image)
+	}
+
+	return &accommodation, status.New(codes.OK, "").Err()
 }
