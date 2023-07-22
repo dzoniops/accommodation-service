@@ -3,7 +3,7 @@ module github.com/dzoniops/accommodation-service
 go 1.18
 
 require (
-	github.com/dzoniops/common v0.0.0-20230721162835-491cc9d5bd8c
+	github.com/dzoniops/common v0.0.0-20230722185634-f6f11bb7b9e9
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/grpc v1.56.2
 	gorm.io/driver/postgres v1.5.2

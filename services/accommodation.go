@@ -62,8 +62,8 @@ func (s *Server) GetAccommodationById(
 		Amenities:        accommo.Amenities,
 		MinGuests:        int64(accommo.MinGuests),
 		MaxGuests:        int64(accommo.MaxGuests),
-		PricingModel:     string(accommo.PricingModel),
-		ReservationModel: string(accommo.ReservationModel),
+		PricingModel:     pb.PricingModel(accommo.PricingModel),
+		ReservationModel: pb.ReservationModel(accommo.ReservationModel),
 		Images:           []*pb.AccommodationImageResponse{},
 	}
 
@@ -77,4 +77,48 @@ func (s *Server) GetAccommodationById(
 	}
 
 	return &accommodation, status.New(codes.OK, "").Err()
+}
+
+func (s *Server) AccommodationSearch(
+	c context.Context,
+	req *pb.AccommodationSearchRequest,
+) (*pb.AccommodationSearchResponse, error) {
+	var town string = req.Town
+	var municipality string = req.Municipality
+	var country string = req.Country
+	var guestCount int = int(req.GuestCount)
+
+	var accommo []models.Accommodation
+	if result := db.DB.Preload("Images").Where("Min_Guests <= ? AND Max_Guests >= ? AND town LIKE ? AND municipality LIKE ? AND country LIKE ?", guestCount, guestCount, "%"+town+"%", "%"+municipality+"%", "%"+country+"%").Find(&accommo); result.Error != nil {
+		fmt.Println(result.Error)
+	}
+	var searchResult = pb.AccommodationSearchResponse{AccomomodationList: []*pb.AccommodationInfo{}}
+
+	for _, v := range accommo {
+		var accommodation = pb.AccommodationInfo{
+			Id:               v.ID,
+			HostId:           v.HostID,
+			Name:             v.Name,
+			Town:             v.Town,
+			Municipality:     v.Municipality,
+			Country:          v.Country,
+			Amenities:        v.Amenities,
+			MinGuests:        int64(v.MinGuests),
+			MaxGuests:        int64(v.MaxGuests),
+			PricingModel:     pb.PricingModel(v.PricingModel),
+			ReservationModel: pb.ReservationModel(v.ReservationModel),
+			Images:           []*pb.AccommodationImageResponse{},
+		}
+		for _, v2 := range v.Images {
+			var image = pb.AccommodationImageResponse{
+				B64Img:          v2.B64IMG,
+				ImageId:         v2.ID,
+				AccommodationId: v2.AccommodationID,
+			}
+			accommodation.Images = append(accommodation.Images, &image)
+		}
+		searchResult.AccomomodationList = append(searchResult.AccomomodationList, &accommodation)
+	}
+
+	return &searchResult, status.New(codes.OK, "").Err()
 }
