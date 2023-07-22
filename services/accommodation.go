@@ -62,8 +62,8 @@ func (s *Server) GetAccommodationById(
 		Amenities:        accommo.Amenities,
 		MinGuests:        int64(accommo.MinGuests),
 		MaxGuests:        int64(accommo.MaxGuests),
-		PricingModel:     string(accommo.PricingModel),
-		ReservationModel: string(accommo.ReservationModel),
+		PricingModel:     pb.PricingModel(accommo.PricingModel),
+		ReservationModel: pb.ReservationModel(accommo.ReservationModel),
 		Images:           []*pb.AccommodationImageResponse{},
 	}
 
@@ -105,8 +105,8 @@ func (s *Server) AccommodationSearch(
 			Amenities:        v.Amenities,
 			MinGuests:        int64(v.MinGuests),
 			MaxGuests:        int64(v.MaxGuests),
-			PricingModel:     string(v.PricingModel),
-			ReservationModel: string(v.ReservationModel),
+			PricingModel:     pb.PricingModel(v.PricingModel),
+			ReservationModel: pb.ReservationModel(v.ReservationModel),
 			Images:           []*pb.AccommodationImageResponse{},
 		}
 		for _, v2 := range v.Images {
