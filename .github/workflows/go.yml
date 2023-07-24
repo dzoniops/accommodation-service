@@ -35,5 +35,4 @@ jobs:
         go-version: '1.18'
 
     - name: Test
-      run: go test ./services/ -v
-
+      run: go test -v ./...
