@@ -6,11 +6,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/go-connections/nat"
 	"github.com/dzoniops/accommodation-service/db"
 	"github.com/dzoniops/accommodation-service/models"
 	"github.com/dzoniops/common/pkg/accommodation"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func setup() {
@@ -18,8 +21,32 @@ func setup() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	req := testcontainers.ContainerRequest{
+		Image:        "postgres:12",
+		ExposedPorts: []string{"5432/tcp"},
+		AutoRemove:   true,
+		Env: map[string]string{
+			"POSTGRES_USER":     os.Getenv("PGUSER"),
+			"POSTGRES_PASSWORD": os.Getenv("PGPASSWORD"),
+			"POSTGRES_DB":       os.Getenv("PGDATABASE"),
+		},
+		WaitingFor: wait.ForListeningPort("5432/tcp"),
+	}
+	postgres, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		log.Fatal("error:", err)
+	}
+	dbPort, err := postgres.MappedPort(context.Background(), nat.Port("5432/tcp"))
+	if err != nil {
+		log.Fatal("error:", err)
+	}
+	os.Setenv("PGPORT", dbPort.Port())
 	db.InitDB()
 }
+
 func teardown() {
 	db.DB.Delete(&models.Accommodation{}, "name = ?", "Test Residence")
 }
