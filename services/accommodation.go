@@ -9,6 +9,7 @@ import (
 	pb "github.com/dzoniops/common/pkg/accommodation"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Server struct {
@@ -49,8 +50,8 @@ func (s *Server) GetAccommodationById(
 
 	var id int64 = req.AccommodationId
 	var accommo models.Accommodation
-	if result := db.DB.Preload("Images").Where(models.Accommodation{ID: id}).First(&accommo); result.Error != nil {
-		fmt.Println(result.Error)
+	if res := db.DB.Preload("Images").Where(models.Accommodation{ID: id}).First(&accommo); res.Error != nil {
+		return nil, status.Error(codes.Internal, res.Error.Error())
 	}
 	var accommodation = pb.AccommodationInfo{
 		Id:               accommo.ID,
@@ -121,4 +122,11 @@ func (s *Server) AccommodationSearch(
 	}
 
 	return &searchResult, status.New(codes.OK, "").Err()
+}
+
+func (s *Server) DeleteByHost(c context.Context, req *pb.IdRequest) (*emptypb.Empty, error) {
+	if res := db.DB.Where("host_id = ?", req.Id).Delete(&models.Accommodation{}); res.Error != nil {
+		return nil, status.Error(codes.Internal, res.Error.Error())
+	}
+	return &emptypb.Empty{}, nil
 }
