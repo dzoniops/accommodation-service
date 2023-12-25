@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"github.com/dzoniops/accommodation-service/client"
+	"github.com/dzoniops/accommodation-service/db"
 	"log"
 	"net"
 	"os"
 
-	"github.com/dzoniops/accommodation-service/db"
 	"github.com/dzoniops/accommodation-service/services"
 	pb "github.com/dzoniops/common/pkg/accommodation"
 	"github.com/joho/godotenv"
