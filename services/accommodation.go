@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"github.com/dzoniops/accommodation-service/client"
 
 	"github.com/dzoniops/accommodation-service/db"
 	"github.com/dzoniops/accommodation-service/models"
@@ -14,6 +14,7 @@ import (
 
 type Server struct {
 	pb.UnimplementedAccommodationServiceServer
+	ReservationClient client.ReservationClient
 }
 
 func (s *Server) CreateAccommodation(
@@ -40,7 +41,7 @@ func (s *Server) CreateAccommodation(
 	}
 
 	db.DB.Create(&accommodation)
-	return &pb.AccommodationResponse{AccommodationId: int64(accommodation.ID)}, status.New(codes.OK, "").Err()
+	return &pb.AccommodationResponse{AccommodationId: accommodation.ID}, status.New(codes.OK, "").Err()
 }
 
 func (s *Server) GetAccommodationById(
@@ -48,55 +49,56 @@ func (s *Server) GetAccommodationById(
 	req *pb.AccommodationResponse,
 ) (*pb.AccommodationInfo, error) {
 
-	var id int64 = req.AccommodationId
-	var accommo models.Accommodation
-	if res := db.DB.Preload("Images").Where(models.Accommodation{ID: id}).First(&accommo); res.Error != nil {
+	var accommodation models.Accommodation
+	if res := db.DB.Preload("Images").Where(models.Accommodation{ID: req.AccommodationId}).First(&accommodation); res.Error != nil {
 		return nil, status.Error(codes.Internal, res.Error.Error())
 	}
-	var accommodation = pb.AccommodationInfo{
-		Id:               accommo.ID,
-		HostId:           accommo.HostID,
-		Name:             accommo.Name,
-		Town:             accommo.Town,
-		Municipality:     accommo.Municipality,
-		Country:          accommo.Country,
-		Amenities:        accommo.Amenities,
-		MinGuests:        int64(accommo.MinGuests),
-		MaxGuests:        int64(accommo.MaxGuests),
-		PricingModel:     pb.PricingModel(accommo.PricingModel),
-		ReservationModel: pb.ReservationModel(accommo.ReservationModel),
+	var accommodationInfo = pb.AccommodationInfo{
+		Id:               accommodation.ID,
+		HostId:           accommodation.HostID,
+		Name:             accommodation.Name,
+		Town:             accommodation.Town,
+		Municipality:     accommodation.Municipality,
+		Country:          accommodation.Country,
+		Amenities:        accommodation.Amenities,
+		MinGuests:        int64(accommodation.MinGuests),
+		MaxGuests:        int64(accommodation.MaxGuests),
+		PricingModel:     pb.PricingModel(accommodation.PricingModel),
+		ReservationModel: pb.ReservationModel(accommodation.ReservationModel),
 		Images:           []*pb.AccommodationImageResponse{},
 	}
 
-	for _, v := range accommo.Images {
+	for _, v := range accommodation.Images {
 		var image = pb.AccommodationImageResponse{
 			B64Img:          v.B64IMG,
 			ImageId:         v.ID,
 			AccommodationId: v.AccommodationID,
 		}
-		accommodation.Images = append(accommodation.Images, &image)
+		accommodationInfo.Images = append(accommodationInfo.Images, &image)
 	}
 
-	return &accommodation, status.New(codes.OK, "").Err()
+	return &accommodationInfo, status.New(codes.OK, "").Err()
 }
 
 func (s *Server) AccommodationSearch(
 	c context.Context,
 	req *pb.AccommodationSearchRequest,
 ) (*pb.AccommodationSearchResponse, error) {
-	var town string = req.Town
-	var municipality string = req.Municipality
-	var country string = req.Country
-	var guestCount int = int(req.GuestCount)
+	var town = req.Town
+	var municipality = req.Municipality
+	var country = req.Country
+	var guestCount = int(req.GuestCount)
 
-	var accommo []models.Accommodation
-	if result := db.DB.Preload("Images").Where("Min_Guests <= ? AND Max_Guests >= ? AND town LIKE ? AND municipality LIKE ? AND country LIKE ?", guestCount, guestCount, "%"+town+"%", "%"+municipality+"%", "%"+country+"%").Find(&accommo); result.Error != nil {
-		fmt.Println(result.Error)
+	var accommodations []models.Accommodation
+	if result := db.DB.Preload("Images").
+		Where("Min_Guests <= ? AND Max_Guests >= ? AND town LIKE ? AND municipality LIKE ? AND country LIKE ?",
+			guestCount, guestCount, "%"+town+"%", "%"+municipality+"%", "%"+country+"%").Find(&accommodations); result.Error != nil {
+		return nil, status.Error(codes.Internal, result.Error.Error())
 	}
 	var searchResult = pb.AccommodationSearchResponse{AccomomodationList: []*pb.AccommodationInfo{}}
 
-	for _, v := range accommo {
-		var accommodation = pb.AccommodationInfo{
+	for _, v := range accommodations {
+		var accommodationInfo = pb.AccommodationInfo{
 			Id:               v.ID,
 			HostId:           v.HostID,
 			Name:             v.Name,
@@ -116,9 +118,9 @@ func (s *Server) AccommodationSearch(
 				ImageId:         v2.ID,
 				AccommodationId: v2.AccommodationID,
 			}
-			accommodation.Images = append(accommodation.Images, &image)
+			accommodationInfo.Images = append(accommodationInfo.Images, &image)
 		}
-		searchResult.AccomomodationList = append(searchResult.AccomomodationList, &accommodation)
+		searchResult.AccomomodationList = append(searchResult.AccomomodationList, &accommodationInfo)
 	}
 
 	return &searchResult, status.New(codes.OK, "").Err()
