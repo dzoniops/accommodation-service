@@ -80,10 +80,7 @@ func (s *Server) GetAccommodationById(
 	return &accommodationInfo, status.New(codes.OK, "").Err()
 }
 
-func (s *Server) AccommodationSearch(
-	c context.Context,
-	req *pb.AccommodationSearchRequest,
-) (*pb.AccommodationSearchResponse, error) {
+func (s *Server) AccommodationSearch(c context.Context, req *pb.AccommodationSearchRequest) (*pb.AccommodationSearchResponse, error) {
 	var town = req.Town
 	var municipality = req.Municipality
 	var country = req.Country
@@ -95,35 +92,13 @@ func (s *Server) AccommodationSearch(
 			guestCount, guestCount, "%"+town+"%", "%"+municipality+"%", "%"+country+"%").Find(&accommodations); result.Error != nil {
 		return nil, status.Error(codes.Internal, result.Error.Error())
 	}
-	var searchResult = pb.AccommodationSearchResponse{AccomomodationList: []*pb.AccommodationInfo{}}
 
-	for _, v := range accommodations {
-		var accommodationInfo = pb.AccommodationInfo{
-			Id:               v.ID,
-			HostId:           v.HostID,
-			Name:             v.Name,
-			Town:             v.Town,
-			Municipality:     v.Municipality,
-			Country:          v.Country,
-			Amenities:        v.Amenities,
-			MinGuests:        int64(v.MinGuests),
-			MaxGuests:        int64(v.MaxGuests),
-			PricingModel:     pb.PricingModel(v.PricingModel),
-			ReservationModel: pb.ReservationModel(v.ReservationModel),
-			Images:           []*pb.AccommodationImageResponse{},
-		}
-		for _, v2 := range v.Images {
-			var image = pb.AccommodationImageResponse{
-				B64Img:          v2.B64IMG,
-				ImageId:         v2.ID,
-				AccommodationId: v2.AccommodationID,
-			}
-			accommodationInfo.Images = append(accommodationInfo.Images, &image)
-		}
-		searchResult.AccomomodationList = append(searchResult.AccomomodationList, &accommodationInfo)
+	//TODO: calculate price for each search accommodation
+	searchResult, err := s.ReservationClient.FilterAccommodations(c, req.StartDate.AsTime(), req.EndDate.AsTime(), accommodations)
+	if err != nil {
+		return nil, err
 	}
-
-	return &searchResult, status.New(codes.OK, "").Err()
+	return searchResult, status.New(codes.OK, "").Err()
 }
 
 func (s *Server) DeleteByHost(c context.Context, req *pb.IdRequest) (*emptypb.Empty, error) {

@@ -1,11 +1,15 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"github.com/dzoniops/accommodation-service/models"
+	"github.com/dzoniops/accommodation-service/util"
+	"github.com/dzoniops/common/pkg/accommodation"
 	pb "github.com/dzoniops/common/pkg/reservation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -22,6 +26,20 @@ func InitReservationClient(url string) *ReservationClient {
 	return &ReservationClient{client: client}
 }
 
-func (r *ReservationClient) filterAccommodations(startDate, endDate time.Time, accommodations []models.Accommodation) {
-
+func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, endDate time.Time, accommodations []models.Accommodation) (*accommodation.AccommodationSearchResponse, error) {
+	var filterAccommodations pb.FilterAccommodationsRequest
+	for _, a := range accommodations {
+		accommodationRequest := pb.AccommodationRequest{
+			AccommodationId: a.ID,
+			StartDate:       timestamppb.New(startDate),
+			EndDate:         timestamppb.New(endDate),
+		}
+		filterAccommodations.Accommodations = append(filterAccommodations.Accommodations, &accommodationRequest)
+	}
+	available, err := r.client.FilterAvailableForAccommodations(c, &filterAccommodations)
+	if err != nil {
+		return nil, err
+	}
+	result := util.GenerateSearch(accommodations, available)
+	return result, nil
 }
