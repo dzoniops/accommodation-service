@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 )
 
 type ReservationClient struct {
@@ -26,13 +25,13 @@ func InitReservationClient(url string) *ReservationClient {
 	return &ReservationClient{client: client}
 }
 
-func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, endDate time.Time, accommodations []models.Accommodation) (*accommodation.AccommodationSearchResponse, error) {
+func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, endDate *timestamppb.Timestamp, accommodations []models.Accommodation) (*accommodation.AccommodationSearchResponse, error) {
 	var filterAccommodations pb.FilterAccommodationsRequest
 	for _, a := range accommodations {
 		accommodationRequest := pb.AccommodationRequest{
 			AccommodationId: a.ID,
-			StartDate:       timestamppb.New(startDate),
-			EndDate:         timestamppb.New(endDate),
+			StartDate:       startDate,
+			EndDate:         endDate,
 		}
 		filterAccommodations.Accommodations = append(filterAccommodations.Accommodations, &accommodationRequest)
 	}

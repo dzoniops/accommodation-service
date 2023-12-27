@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"github.com/dzoniops/accommodation-service/client"
-
 	"github.com/dzoniops/accommodation-service/db"
 	"github.com/dzoniops/accommodation-service/models"
 	pb "github.com/dzoniops/common/pkg/accommodation"
@@ -88,13 +87,13 @@ func (s *Server) AccommodationSearch(c context.Context, req *pb.AccommodationSea
 
 	var accommodations []models.Accommodation
 	if result := db.DB.Preload("Images").
-		Where("Min_Guests <= ? AND Max_Guests >= ? AND town LIKE ? AND municipality LIKE ? AND country LIKE ?",
+		Where("Min_Guests <= ? AND Max_Guests >= ? AND (town LIKE ? OR municipality LIKE ? OR country LIKE ?)",
 			guestCount, guestCount, "%"+town+"%", "%"+municipality+"%", "%"+country+"%").Find(&accommodations); result.Error != nil {
 		return nil, status.Error(codes.Internal, result.Error.Error())
 	}
-
 	//TODO: calculate price for each search accommodation
-	searchResult, err := s.ReservationClient.FilterAccommodations(c, req.StartDate.AsTime(), req.EndDate.AsTime(), accommodations)
+
+	searchResult, err := s.ReservationClient.FilterAccommodations(c, req.StartDate, req.EndDate, accommodations)
 	if err != nil {
 		return nil, err
 	}
