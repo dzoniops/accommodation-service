@@ -39,6 +39,7 @@ func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, e
 	if err != nil {
 		return nil, err
 	}
-	result := util.GenerateSearch(accommodations, available)
+	numberOfDays := int64(endDate.AsTime().Sub(startDate.AsTime()).Hours() / 24)
+	result := util.GenerateSearch(accommodations, available, numberOfDays)
 	return result, nil
 }

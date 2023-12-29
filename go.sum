@@ -39,6 +39,8 @@ github.com/dzoniops/common v0.0.0-20230731092654-eb40939700f9 h1:vVBw/Utfdo1Y++8
 github.com/dzoniops/common v0.0.0-20230731092654-eb40939700f9/go.mod h1:vw+V88JJpC8gyvyqK0Vj1oKCV3GgvsZ6SozgOsqYH9c=
 github.com/dzoniops/common v0.0.0-20231226135025-e59ceac4418b h1:lC1HWD+Xqo2UBVxlkQVfn/Fmzut0wUwPdw6SvbZyQtk=
 github.com/dzoniops/common v0.0.0-20231226135025-e59ceac4418b/go.mod h1:vw+V88JJpC8gyvyqK0Vj1oKCV3GgvsZ6SozgOsqYH9c=
+github.com/dzoniops/common v0.0.0-20231229141119-9723f9d9188d h1:TLmoWa490ZD7dXgrWV54Dr0RpPHGds9gX1KFmuVkyHc=
+github.com/dzoniops/common v0.0.0-20231229141119-9723f9d9188d/go.mod h1:vw+V88JJpC8gyvyqK0Vj1oKCV3GgvsZ6SozgOsqYH9c=
 github.com/frankban/quicktest v1.11.3/go.mod h1:wRf/ReqHper53s+kmmSZizM8NamnL3IM0I9ntUbOk+k=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/godbus/dbus/v5 v5.0.6/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=

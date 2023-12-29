@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/docker/go-connections v0.4.0
-	github.com/dzoniops/common v0.0.0-20231226135025-e59ceac4418b
+	github.com/dzoniops/common v0.0.0-20231229141119-9723f9d9188d
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.21.0

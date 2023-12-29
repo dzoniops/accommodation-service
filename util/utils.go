@@ -6,17 +6,17 @@ import (
 	reservationpb "github.com/dzoniops/common/pkg/reservation"
 )
 
-func Contains(id int64, available *reservationpb.FilterAvailableResponse) bool {
-	for _, a := range available.IdPrices {
+func Contains(id int64, available *reservationpb.FilterAvailableResponse) int {
+	for idx, a := range available.IdPrices {
 		if a.Id == id {
-			return true
+			return idx
 		}
 	}
-	return false
+	return -1
 }
 
-func CreateAccommodationInfo(v models.Accommodation) *pb.AccommodationInfo {
-	var accommodationInfo = pb.AccommodationInfo{
+func CreateAccommodationSearchInfo(v models.Accommodation, idPrices *reservationpb.IdPrice, numberOfDays int64) *pb.AccommodationSearchInfo {
+	var accommodationInfo = pb.AccommodationSearchInfo{
 		Id:               v.ID,
 		HostId:           v.HostID,
 		Name:             v.Name,
@@ -29,6 +29,7 @@ func CreateAccommodationInfo(v models.Accommodation) *pb.AccommodationInfo {
 		PricingModel:     pb.PricingModel(v.PricingModel),
 		ReservationModel: pb.ReservationModel(v.ReservationModel),
 		Images:           []*pb.AccommodationImageResponse{},
+		TotalPrice:       idPrices.Price * numberOfDays,
 	}
 	for _, v2 := range v.Images {
 		var image = pb.AccommodationImageResponse{
@@ -40,11 +41,11 @@ func CreateAccommodationInfo(v models.Accommodation) *pb.AccommodationInfo {
 	}
 	return &accommodationInfo
 }
-func GenerateSearch(accommodations []models.Accommodation, response *reservationpb.FilterAvailableResponse) *pb.AccommodationSearchResponse {
-	var result []*pb.AccommodationInfo
+func GenerateSearch(accommodations []models.Accommodation, response *reservationpb.FilterAvailableResponse, numberOfDays int64) *pb.AccommodationSearchResponse {
+	var result []*pb.AccommodationSearchInfo
 	for _, accommodation := range accommodations {
-		if Contains(accommodation.ID, response) {
-			accommodationInfo := CreateAccommodationInfo(accommodation)
+		if i := Contains(accommodation.ID, response); i != -1 {
+			accommodationInfo := CreateAccommodationSearchInfo(accommodation, response.IdPrices[i], numberOfDays)
 			result = append(result, accommodationInfo)
 		}
 	}
