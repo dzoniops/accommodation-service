@@ -83,7 +83,7 @@ func (s *Server) AccommodationSearch(c context.Context, req *pb.AccommodationSea
 	var town = req.Town
 	var municipality = req.Municipality
 	var country = req.Country
-	var guestCount = int(req.GuestCount)
+	var guestCount = req.GuestCount
 
 	var accommodations []models.Accommodation
 	if result := db.DB.Preload("Images").
@@ -93,7 +93,7 @@ func (s *Server) AccommodationSearch(c context.Context, req *pb.AccommodationSea
 	}
 	//TODO: calculate price for each search accommodation
 
-	searchResult, err := s.ReservationClient.FilterAccommodations(c, req.StartDate, req.EndDate, accommodations)
+	searchResult, err := s.ReservationClient.FilterAccommodations(c, req.StartDate, req.EndDate, accommodations, guestCount)
 	if err != nil {
 		return nil, err
 	}

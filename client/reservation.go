@@ -25,7 +25,8 @@ func InitReservationClient(url string) *ReservationClient {
 	return &ReservationClient{client: client}
 }
 
-func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, endDate *timestamppb.Timestamp, accommodations []models.Accommodation) (*accommodation.AccommodationSearchResponse, error) {
+func (r *ReservationClient) FilterAccommodations(
+	c context.Context, startDate, endDate *timestamppb.Timestamp, accommodations []models.Accommodation, guestCount int64) (*accommodation.AccommodationSearchResponse, error) {
 	var filterAccommodations pb.FilterAccommodationsRequest
 	for _, a := range accommodations {
 		accommodationRequest := pb.AccommodationRequest{
@@ -40,6 +41,6 @@ func (r *ReservationClient) FilterAccommodations(c context.Context, startDate, e
 		return nil, err
 	}
 	numberOfDays := int64(endDate.AsTime().Sub(startDate.AsTime()).Hours() / 24)
-	result := util.GenerateSearch(accommodations, available, numberOfDays)
+	result := util.GenerateSearch(accommodations, available, numberOfDays, guestCount)
 	return result, nil
 }
