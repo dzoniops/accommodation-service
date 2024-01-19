@@ -31,11 +31,8 @@ func CreateAccommodationSearchInfo(v models.Accommodation, idPrices *reservation
 		Images:           []*pb.AccommodationImageResponse{},
 		TotalPrice:       idPrices.Price * numberOfDays,
 	}
-	if v.PricingModel == models.PUPN {
-		accommodationInfo.PricePerUnit = float32(idPrices.Price)
-	} else if v.PricingModel == models.PGPN {
-		accommodationInfo.PricePerPerson = float32(accommodationInfo.TotalPrice / guestCount)
-	}
+	accommodationInfo.PricePerUnit = float32(idPrices.Price)
+	accommodationInfo.PricePerPerson = float32(accommodationInfo.TotalPrice / (guestCount * numberOfDays))
 	for _, v2 := range v.Images {
 		var image = pb.AccommodationImageResponse{
 			B64Img:          v2.B64IMG,
